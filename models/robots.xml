@@ -2,7 +2,8 @@
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
 	<declaration>// Place global declarations here
-const int N = 5;
+const int N = 1;
+typedef int[0, N-1] interval;
 
 int idRobot;
 int distance;
@@ -13,10 +14,11 @@ chan new_mission;
 chan finished_mission;</declaration>
 	<template>
 		<name>SectorManager</name>
-		<declaration>
-void startMission(int[1,4] id, int[1,4] distance1){
+		<declaration>//clock executionMissionTime;
+
+void startMission(interval id, interval distance1){
     idRobot = id;
-    distance = distance1 * 5;
+    distance = (distance1+1) * 5;
 }</declaration>
 		<location id="id0" x="-544" y="-110">
 		</location>
@@ -33,8 +35,8 @@ void startMission(int[1,4] id, int[1,4] distance1){
 		<transition>
 			<source ref="id0"/>
 			<target ref="id1"/>
-			<label kind="select" x="-501" y="-110">id : int[1, 4],
-distance : int[1, 4]</label>
+			<label kind="select" x="-501" y="-110">id : interval,
+distance : interval</label>
 			<label kind="synchronisation" x="-476" y="-127">new_mission!</label>
 			<label kind="assignment" x="-501" y="-68">startMission(id, distance)</label>
 		</transition>
@@ -79,7 +81,7 @@ bool is_busy = false;</declaration>
 	</template>
 	<template>
 		<name x="5" y="5">Robot</name>
-		<parameter>const int[1, 4]  id</parameter>
+		<parameter>const interval id</parameter>
 		<declaration>// Place local declarations here.
 int[0, 100] battery = 100;
 bool has_resources = false;
@@ -98,22 +100,27 @@ bool isLowBattery(){
 
 //bool low_battery= (battery &lt; 20);</declaration>
 		<location id="id5" x="-238" y="-59">
-			<name x="-263" y="-93">Idle</name>
+			<name x="-289" y="-68">Idle</name>
 		</location>
 		<location id="id6" x="34" y="-238">
 			<name x="-34" y="-246">moving</name>
+			<label kind="invariant" x="-25" y="-229">t &lt; 60</label>
 		</location>
 		<location id="id7" x="365" y="0">
-			<name x="355" y="-34">executing_mission</name>
+			<name x="348" y="-59">executing_mission</name>
+			<label kind="invariant" x="357" y="-34">t &gt;=30 &amp;&amp; t &lt; 60</label>
 		</location>
 		<location id="id8" x="34" y="-408">
-			<name x="25" y="-442">grab_resources</name>
+			<name x="-8" y="-459">grab_resources</name>
+			<label kind="invariant" x="17" y="-442">t &gt;=20 &amp;&amp; t &lt; 60</label>
 		</location>
 		<location id="id9" x="-442" y="-272">
-			<name x="-510" y="-314">recharge_battery</name>
+			<name x="-501" y="-323">recharge_battery</name>
+			<label kind="invariant" x="-493" y="-306">t &gt;= 6 &amp;&amp; t &lt; 10</label>
 		</location>
-		<location id="id10" x="-238" y="-272">
+		<location id="id10" x="-238" y="-272" color="#0000ff">
 			<name x="-289" y="-323">check_battery</name>
+			<label kind="invariant" x="-255" y="-306">t &lt; 10</label>
 		</location>
 		<init ref="id5"/>
 		<transition>
@@ -132,8 +139,8 @@ bool isLowBattery(){
 		<transition>
 			<source ref="id10"/>
 			<target ref="id9"/>
-			<label kind="guard" x="-391" y="-263">isLowBattery() &amp;&amp;
-t &gt;= 6 &amp;&amp; t &lt; 10</label>
+			<label kind="guard" x="-408" y="-263">isLowBattery() &amp;&amp;
+t &gt;= 6</label>
 		</transition>
 		<transition>
 			<source ref="id5"/>
@@ -152,17 +159,15 @@ t = 0</label>
 		<transition>
 			<source ref="id6"/>
 			<target ref="id8"/>
-			<label kind="guard" x="-161" y="-357">has_resources == false &amp;&amp;
-mission_complete == false &amp;&amp;
-t &gt;= 20	 &amp;&amp; t &lt;30</label>
+			<label kind="guard" x="-187" y="-408">has_resources == false  &amp;&amp;
+mission_complete == false</label>
 		</transition>
 		<transition>
 			<source ref="id6"/>
 			<target ref="id5"/>
-			<label kind="guard" x="-212" y="-59">mission_complete == true &amp;&amp;
-t &lt;= 60</label>
-			<label kind="synchronisation" x="-212" y="-25">finished_mission!</label>
-			<label kind="assignment" x="-204" y="-8">verifyBattery()</label>
+			<label kind="guard" x="-212" y="-59">mission_complete == true</label>
+			<label kind="synchronisation" x="-204" y="-42">finished_mission!</label>
+			<label kind="assignment" x="-195" y="-25">verifyBattery()</label>
 			<nail x="-43" y="-59"/>
 			<nail x="-221" y="-59"/>
 		</transition>
@@ -177,21 +182,17 @@ has_resources = false</label>
 		<transition>
 			<source ref="id6"/>
 			<target ref="id7"/>
-			<label kind="guard" x="212" y="-170">has_resources == true &amp;&amp;
-t &gt; 30 &amp;&amp; t &lt;= 50</label>
+			<label kind="guard" x="212" y="-170">has_resources == true</label>
 		</transition>
 	</template>
-	<system>
+	<system>// Place template instantiations here.
 
-
-// Place template instantiations here.
-//Robo1 = Robot();
-//SecMan = SectorManager();
-
-// Nurse1 = Nurse(new_mission, finished_mission);
-// List one or more processes to be composed into a system.
+//Instanciar N Robôs
 system Robot, SectorManager;
-    </system>
+
+gantt {
+  Robot(i : interval): Robot(i).Idle -&gt; 1;
+}</system>
 	<queries>
 		<query>
 			<formula></formula>

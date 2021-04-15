@@ -70,7 +70,7 @@ void remove()
 			<label kind="invariant" x="48" y="56">t&lt;=L[id]</label>
 		</location>
 		<location id="id1" x="32" y="192">
-			<name x="40" y="152">Ready</name>
+			<name x="42" y="153">Ready</name>
 		</location>
 		<location id="id2" x="32" y="320">
 			<name x="8" y="288">Running</name>
