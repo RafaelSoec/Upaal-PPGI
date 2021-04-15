@@ -85,6 +85,8 @@ int[0, 100] battery = 100;
 bool has_resources = false;
 bool mission_complete;
 
+clock t;
+
 void verifyBattery(){
     battery = (battery - distance ) &lt; 0 ? 0 : (battery - distance );
 }
@@ -95,17 +97,17 @@ bool isLowBattery(){
 
 
 //bool low_battery= (battery &lt; 20);</declaration>
-		<location id="id5" x="-297" y="-119">
-			<name x="-322" y="-153">Idle</name>
+		<location id="id5" x="-238" y="-59">
+			<name x="-263" y="-93">Idle</name>
 		</location>
 		<location id="id6" x="34" y="-238">
 			<name x="-34" y="-246">moving</name>
 		</location>
-		<location id="id7" x="289" y="-68">
-			<name x="279" y="-102">executing_mission</name>
+		<location id="id7" x="365" y="0">
+			<name x="355" y="-34">executing_mission</name>
 		</location>
-		<location id="id8" x="34" y="-323">
-			<name x="25" y="-357">grab_resources</name>
+		<location id="id8" x="34" y="-408">
+			<name x="25" y="-442">grab_resources</name>
 		</location>
 		<location id="id9" x="-442" y="-272">
 			<name x="-510" y="-314">recharge_battery</name>
@@ -130,48 +132,53 @@ bool isLowBattery(){
 		<transition>
 			<source ref="id10"/>
 			<target ref="id9"/>
-			<label kind="guard" x="-391" y="-263">isLowBattery()</label>
+			<label kind="guard" x="-391" y="-263">isLowBattery() &amp;&amp;
+t &gt;= 6 &amp;&amp; t &lt; 10</label>
 		</transition>
 		<transition>
 			<source ref="id5"/>
 			<target ref="id10"/>
-			<label kind="synchronisation" x="-272" y="-170">new_mission?</label>
-			<label kind="assignment" x="-272" y="-153">mission_complete = false</label>
+			<label kind="synchronisation" x="-229" y="-204">new_mission?</label>
+			<label kind="assignment" x="-229" y="-187">mission_complete = false,
+t = 0</label>
 		</transition>
 		<transition>
 			<source ref="id8"/>
 			<target ref="id6"/>
-			<label kind="assignment" x="170" y="-187">has_resources = true</label>
-			<nail x="331" y="-323"/>
-			<nail x="323" y="-238"/>
+			<label kind="assignment" x="144" y="-314">has_resources = true</label>
+			<nail x="136" y="-331"/>
+			<nail x="136" y="-238"/>
 		</transition>
 		<transition>
 			<source ref="id6"/>
 			<target ref="id8"/>
-			<label kind="guard" x="59" y="-289">has_resources == false &amp;&amp;
-mission_complete == false</label>
+			<label kind="guard" x="-161" y="-357">has_resources == false &amp;&amp;
+mission_complete == false &amp;&amp;
+t &gt;= 20	 &amp;&amp; t &lt;30</label>
 		</transition>
 		<transition>
 			<source ref="id6"/>
 			<target ref="id5"/>
-			<label kind="guard" x="-229" y="-59">mission_complete == true</label>
-			<label kind="synchronisation" x="-204" y="-42">finished_mission!</label>
-			<label kind="assignment" x="-195" y="-25">verifyBattery()</label>
+			<label kind="guard" x="-212" y="-59">mission_complete == true &amp;&amp;
+t &lt;= 60</label>
+			<label kind="synchronisation" x="-212" y="-25">finished_mission!</label>
+			<label kind="assignment" x="-204" y="-8">verifyBattery()</label>
 			<nail x="-43" y="-59"/>
 			<nail x="-221" y="-59"/>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id6"/>
-			<label kind="assignment" x="8" y="8">mission_complete = true,
+			<label kind="assignment" x="68" y="8">mission_complete = true,
 has_resources = false</label>
 			<nail x="136" y="8"/>
-			<nail x="0" y="8"/>
+			<nail x="34" y="8"/>
 		</transition>
 		<transition>
 			<source ref="id6"/>
 			<target ref="id7"/>
-			<label kind="guard" x="17" y="-93">has_resources == true</label>
+			<label kind="guard" x="212" y="-170">has_resources == true &amp;&amp;
+t &gt; 30 &amp;&amp; t &lt;= 50</label>
 		</transition>
 	</template>
 	<system>
@@ -188,6 +195,10 @@ system Robot, SectorManager;
 	<queries>
 		<query>
 			<formula></formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A[] not deadlock</formula>
 			<comment></comment>
 		</query>
 	</queries>
