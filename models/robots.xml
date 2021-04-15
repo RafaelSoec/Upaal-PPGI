@@ -89,6 +89,10 @@ void verifyBattery(){
     battery = (battery - distance ) &lt; 0 ? 0 : (battery - distance );
 }
 
+bool isLowBattery(){
+   return ((battery &lt; 20) == true);
+}
+
 
 //bool low_battery= (battery &lt; 20);</declaration>
 		<location id="id5" x="-297" y="-119">
@@ -113,7 +117,7 @@ void verifyBattery(){
 		<transition>
 			<source ref="id10"/>
 			<target ref="id6"/>
-			<label kind="guard" x="-221" y="-263">(battery &lt; 20) == false</label>
+			<label kind="guard" x="-221" y="-263">!isLowBattery()</label>
 			<nail x="-51" y="-272"/>
 		</transition>
 		<transition>
@@ -126,7 +130,7 @@ void verifyBattery(){
 		<transition>
 			<source ref="id10"/>
 			<target ref="id9"/>
-			<label kind="guard" x="-416" y="-263">(battery &lt; 20) == true</label>
+			<label kind="guard" x="-391" y="-263">isLowBattery()</label>
 		</transition>
 		<transition>
 			<source ref="id5"/>
