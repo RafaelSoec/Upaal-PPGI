@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here
+const int N = 5;
+
+int idRobot;
+int distance;
+
+//const int distance[5] = {1, 5, 10, 15, 20};	
+
+chan new_mission;
+chan finished_mission;</declaration>
+	<template>
+		<name>SectorManager</name>
+		<declaration>
+void startMission(int[1,4] id, int[1,4] distance1){
+    idRobot = id;
+    distance = distance1 * 5;
+}</declaration>
+		<location id="id0" x="-544" y="-110">
+		</location>
+		<location id="id1" x="-323" y="-110">
+		</location>
+		<init ref="id0"/>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-484" y="-195">finished_mission?</label>
+			<nail x="-382" y="-170"/>
+			<nail x="-510" y="-170"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="select" x="-501" y="-110">id : int[1, 4],
+distance : int[1, 4]</label>
+			<label kind="synchronisation" x="-476" y="-127">new_mission!</label>
+			<label kind="assignment" x="-501" y="-68">startMission(id, distance)</label>
+		</transition>
+	</template>
+	<template>
+		<name>Nurse</name>
+		<declaration>
+bool is_busy = false;</declaration>
+		<location id="id2" x="-340" y="-76">
+			<name x="-391" y="-102">idle</name>
+		</location>
+		<location id="id3" x="-119" y="-76">
+			<name x="-102" y="-110">to_help</name>
+		</location>
+		<location id="id4" x="-212" y="0">
+			<name x="-229" y="-42">busy</name>
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-289" y="-119">finished_mission?</label>
+			<label kind="assignment" x="-289" y="-102">is_busy = false</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-289" y="93">is_busy == true</label>
+			<nail x="-290" y="77"/>
+			<nail x="-162" y="94"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-170" y="-25">is_busy == false</label>
+			<label kind="synchronisation" x="-161" y="-8">new_mission?</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id4"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Robot</name>
+		<parameter>const int[1, 4]  id</parameter>
+		<declaration>// Place local declarations here.
+int[0, 100] battery = 100;
+bool has_resources = false;
+bool mission_complete;
+
+void verifyBattery(){
+    battery = (battery - distance ) &lt; 0 ? 0 : (battery - distance );
+}
+
+
+//bool low_battery= (battery &lt; 20);</declaration>
+		<location id="id5" x="-297" y="-119">
+			<name x="-322" y="-153">Idle</name>
+		</location>
+		<location id="id6" x="34" y="-238">
+			<name x="-34" y="-246">moving</name>
+		</location>
+		<location id="id7" x="289" y="-68">
+			<name x="279" y="-102">executing_mission</name>
+		</location>
+		<location id="id8" x="34" y="-323">
+			<name x="25" y="-357">grab_resources</name>
+		</location>
+		<location id="id9" x="-442" y="-272">
+			<name x="-510" y="-314">recharge_battery</name>
+		</location>
+		<location id="id10" x="-238" y="-272">
+			<name x="-289" y="-323">check_battery</name>
+		</location>
+		<init ref="id5"/>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-221" y="-263">(battery &lt; 20) == false</label>
+			<nail x="-51" y="-272"/>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id10"/>
+			<label kind="assignment" x="-433" y="-204">battery = 100</label>
+			<nail x="-442" y="-204"/>
+			<nail x="-297" y="-204"/>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id9"/>
+			<label kind="guard" x="-416" y="-263">(battery &lt; 20) == true</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-272" y="-170">new_mission?</label>
+			<label kind="assignment" x="-272" y="-153">mission_complete = false</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id6"/>
+			<label kind="assignment" x="170" y="-187">has_resources = true</label>
+			<nail x="331" y="-323"/>
+			<nail x="323" y="-238"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id8"/>
+			<label kind="guard" x="59" y="-289">has_resources == false &amp;&amp;
+mission_complete == false</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-229" y="-59">mission_complete == true</label>
+			<label kind="synchronisation" x="-204" y="-42">finished_mission!</label>
+			<label kind="assignment" x="-195" y="-25">verifyBattery()</label>
+			<nail x="-43" y="-59"/>
+			<nail x="-221" y="-59"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="assignment" x="8" y="8">mission_complete = true,
+has_resources = false</label>
+			<nail x="136" y="8"/>
+			<nail x="0" y="8"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id7"/>
+			<label kind="guard" x="17" y="-93">has_resources == true</label>
+		</transition>
+	</template>
+	<system>
+
+
+// Place template instantiations here.
+//Robo1 = Robot();
+//SecMan = SectorManager();
+
+// Nurse1 = Nurse(new_mission, finished_mission);
+// List one or more processes to be composed into a system.
+system Robot, SectorManager;
+    </system>
+	<queries>
+		<query>
+			<formula></formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>
