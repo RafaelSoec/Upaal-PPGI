@@ -3,10 +3,18 @@
 <nta>
 	<declaration>// Place global declarations here
 const int N = 1;
+const int minTime = 20;
+const int maxTime = 60;
+
+typedef int[minTime, maxTime+40] timeOfMissions;
 typedef int[0, N-1] interval;
 
 int idRobot;
 int distance;
+int missionTime;
+bool missionComplete;
+int failedMissions;
+int successfulMissions;
 
 //const int distance[5] = {1, 5, 10, 15, 20};	
 
@@ -15,10 +23,11 @@ chan finished_mission;</declaration>
 	<template>
 		<name>SectorManager</name>
 		<declaration>//clock executionMissionTime;
-
-void startMission(interval id, interval distance1){
+void startMission(interval id, interval distance1, int missionTime1){
     idRobot = id;
     distance = (distance1+1) * 5;
+    missionComplete = false;
+    missionTime = missionTime1;
 }</declaration>
 		<location id="id0" x="-544" y="-110">
 		</location>
@@ -36,9 +45,10 @@ void startMission(interval id, interval distance1){
 			<source ref="id0"/>
 			<target ref="id1"/>
 			<label kind="select" x="-501" y="-110">id : interval,
-distance : interval</label>
+distance : interval,
+missionTime : timeOfMissions</label>
 			<label kind="synchronisation" x="-476" y="-127">new_mission!</label>
-			<label kind="assignment" x="-501" y="-68">startMission(id, distance)</label>
+			<label kind="assignment" x="-501" y="-51">startMission(id, distance, missionTime)</label>
 		</transition>
 	</template>
 	<template>
@@ -85,12 +95,20 @@ bool is_busy = false;</declaration>
 		<declaration>// Place local declarations here.
 int[0, 100] battery = 100;
 bool has_resources = false;
-bool mission_complete;
 
 clock t;
 
-void verifyBattery(){
-    battery = (battery - distance ) &lt; 0 ? 0 : (battery - distance );
+void updateValues(bool success){
+    if(success == true){
+        battery = (battery - distance ) &lt; 0 ? 0 : (battery - distance );
+        successfulMissions++;
+        missionComplete = true;
+    }
+    else{
+        missionComplete = false;
+        failedMissions++;
+        battery = (battery - distance ) &lt; 0 ? 0 : (battery - distance );
+    }
 }
 
 bool isLowBattery(){
@@ -99,85 +117,95 @@ bool isLowBattery(){
 
 
 //bool low_battery= (battery &lt; 20);</declaration>
-		<location id="id5" x="-238" y="-59">
-			<name x="-289" y="-68">Idle</name>
+		<location id="id5" x="-314" y="-51">
+			<name x="-365" y="-60">Idle</name>
 		</location>
-		<location id="id6" x="34" y="-238">
-			<name x="-34" y="-246">moving</name>
-			<label kind="invariant" x="-25" y="-229">t &lt; 60</label>
+		<location id="id6" x="93" y="-221">
+			<name x="25" y="-255">moving</name>
+			<label kind="invariant" x="0" y="-238">t &lt; maxTime</label>
 		</location>
 		<location id="id7" x="365" y="0">
 			<name x="348" y="-59">executing_mission</name>
-			<label kind="invariant" x="357" y="-34">t &gt;=30 &amp;&amp; t &lt; 60</label>
+			<label kind="invariant" x="357" y="-34">t &gt;=30 &amp;&amp; t &lt; maxTime</label>
 		</location>
-		<location id="id8" x="34" y="-408">
-			<name x="-8" y="-459">grab_resources</name>
-			<label kind="invariant" x="17" y="-442">t &gt;=20 &amp;&amp; t &lt; 60</label>
+		<location id="id8" x="93" y="-399">
+			<name x="93" y="-450">grab_resources</name>
+			<label kind="invariant" x="76" y="-433">t &gt;=20 &amp;&amp; t &lt; maxTime</label>
 		</location>
-		<location id="id9" x="-442" y="-272">
-			<name x="-501" y="-323">recharge_battery</name>
-			<label kind="invariant" x="-493" y="-306">t &gt;= 6 &amp;&amp; t &lt; 10</label>
+		<location id="id9" x="-518" y="-272">
+			<name x="-577" y="-323">recharge_battery</name>
+			<label kind="invariant" x="-569" y="-306">t &gt;= 6 &amp;&amp; t &lt; 10</label>
 		</location>
-		<location id="id10" x="-238" y="-272" color="#0000ff">
-			<name x="-289" y="-323">check_battery</name>
-			<label kind="invariant" x="-255" y="-306">t &lt; 10</label>
+		<location id="id10" x="-314" y="-272" color="#0000ff">
+			<name x="-365" y="-323">check_battery</name>
+			<label kind="invariant" x="-331" y="-306">t &lt; 10</label>
 		</location>
 		<init ref="id5"/>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-178" y="-119">t &gt; missionTime &amp;&amp;
+missionComplete == true</label>
+			<label kind="synchronisation" x="-161" y="-153">finished_mission!</label>
+			<label kind="assignment" x="-161" y="-136">updateValues(false)</label>
+			<nail x="0" y="-195"/>
+			<nail x="-221" y="-136"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-255" y="-42">t &lt; missionTime &amp;&amp;
+missionComplete == true</label>
+			<label kind="synchronisation" x="-246" y="-8">finished_mission!</label>
+			<label kind="assignment" x="-246" y="8">updateValues(true)</label>
+			<nail x="-26" y="-51"/>
+		</transition>
 		<transition>
 			<source ref="id10"/>
 			<target ref="id6"/>
 			<label kind="guard" x="-221" y="-263">!isLowBattery()</label>
 			<nail x="-51" y="-272"/>
+			<nail x="68" y="-272"/>
 		</transition>
 		<transition>
 			<source ref="id9"/>
 			<target ref="id10"/>
-			<label kind="assignment" x="-433" y="-204">battery = 100</label>
-			<nail x="-442" y="-204"/>
-			<nail x="-297" y="-204"/>
+			<label kind="assignment" x="-493" y="-204">battery = 100</label>
+			<nail x="-510" y="-204"/>
+			<nail x="-365" y="-204"/>
 		</transition>
 		<transition>
 			<source ref="id10"/>
 			<target ref="id9"/>
-			<label kind="guard" x="-408" y="-263">isLowBattery() &amp;&amp;
+			<label kind="guard" x="-476" y="-263">isLowBattery() &amp;&amp;
 t &gt;= 6</label>
 		</transition>
 		<transition>
 			<source ref="id5"/>
 			<target ref="id10"/>
-			<label kind="synchronisation" x="-229" y="-204">new_mission?</label>
-			<label kind="assignment" x="-229" y="-187">mission_complete = false,
-t = 0</label>
+			<label kind="synchronisation" x="-408" y="-127">new_mission?</label>
+			<label kind="assignment" x="-357" y="-144">t = 0</label>
 		</transition>
 		<transition>
 			<source ref="id8"/>
 			<target ref="id6"/>
-			<label kind="assignment" x="144" y="-314">has_resources = true</label>
-			<nail x="136" y="-331"/>
-			<nail x="136" y="-238"/>
+			<label kind="assignment" x="221" y="-314">has_resources = true</label>
+			<nail x="204" y="-399"/>
+			<nail x="204" y="-238"/>
 		</transition>
 		<transition>
 			<source ref="id6"/>
 			<target ref="id8"/>
 			<label kind="guard" x="-187" y="-408">has_resources == false  &amp;&amp;
-mission_complete == false</label>
-		</transition>
-		<transition>
-			<source ref="id6"/>
-			<target ref="id5"/>
-			<label kind="guard" x="-212" y="-59">mission_complete == true</label>
-			<label kind="synchronisation" x="-204" y="-42">finished_mission!</label>
-			<label kind="assignment" x="-195" y="-25">verifyBattery()</label>
-			<nail x="-43" y="-59"/>
-			<nail x="-221" y="-59"/>
+missionComplete == false</label>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id6"/>
-			<label kind="assignment" x="68" y="8">mission_complete = true,
-has_resources = false</label>
-			<nail x="136" y="8"/>
-			<nail x="34" y="8"/>
+			<label kind="assignment" x="127" y="0">has_resources = false,
+missionComplete = true</label>
+			<nail x="195" y="0"/>
+			<nail x="93" y="0"/>
 		</transition>
 		<transition>
 			<source ref="id6"/>
@@ -189,10 +217,7 @@ has_resources = false</label>
 
 //Instanciar N Robôs
 system Robot, SectorManager;
-
-gantt {
-  Robot(i : interval): Robot(i).Idle -&gt; 1;
-}</system>
+</system>
 	<queries>
 		<query>
 			<formula></formula>
