@@ -2,7 +2,7 @@
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
 	<declaration>// Place global declarations here
-const int N = 1;
+const int N = 5;
 const int minTime = 20;
 const int maxTime = 60;
 
@@ -13,8 +13,6 @@ int idRobot;
 int distance;
 int missionTime;
 bool missionComplete;
-int failedMissions;
-int successfulMissions;
 
 //const int distance[5] = {1, 5, 10, 15, 20};	
 
@@ -95,10 +93,14 @@ bool is_busy = false;</declaration>
 		<declaration>// Place local declarations here.
 int[0, 100] battery = 100;
 bool has_resources = false;
+int totalMissions;
+int failedMissions;
+int successfulMissions;
 
 clock t;
 
 void updateValues(bool success){
+    totalMissions++;
     if(success == true){
         battery = (battery - distance ) &lt; 0 ? 0 : (battery - distance );
         successfulMissions++;
@@ -154,7 +156,7 @@ missionComplete == true</label>
 		<transition>
 			<source ref="id6"/>
 			<target ref="id5"/>
-			<label kind="guard" x="-255" y="-42">t &lt; missionTime &amp;&amp;
+			<label kind="guard" x="-255" y="-42">t &lt;= missionTime &amp;&amp;
 missionComplete == true</label>
 			<label kind="synchronisation" x="-246" y="-8">finished_mission!</label>
 			<label kind="assignment" x="-246" y="8">updateValues(true)</label>
