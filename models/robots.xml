@@ -6,8 +6,8 @@ const int N = 5;
 const int minTime = 20;
 const int maxTime = 60;
 
-typedef int[minTime, maxTime+40] timeOfMissions;
-typedef int[0, N-1] interval;
+typedef int [minTime, maxTime+40] timeOfMissions;
+typedef int [0, N-1] interval;
 
 int idRobot;
 int distance;
@@ -21,8 +21,7 @@ chan finished_mission;</declaration>
 	<template>
 		<name>SectorManager</name>
 		<declaration>//clock executionMissionTime;
-void startMission(interval id, interval distance1, int missionTime1){
-    idRobot = id;
+void startMission(interval distance1, int missionTime1){
     distance = (distance1+1) * 5;
     missionComplete = false;
     missionTime = missionTime1;
@@ -42,11 +41,10 @@ void startMission(interval id, interval distance1, int missionTime1){
 		<transition>
 			<source ref="id0"/>
 			<target ref="id1"/>
-			<label kind="select" x="-501" y="-110">id : interval,
-distance : interval,
+			<label kind="select" x="-501" y="-110">distance : interval,
 missionTime : timeOfMissions</label>
 			<label kind="synchronisation" x="-476" y="-127">new_mission!</label>
-			<label kind="assignment" x="-501" y="-51">startMission(id, distance, missionTime)</label>
+			<label kind="assignment" x="-501" y="-51">startMission(distance, missionTime)</label>
 		</transition>
 	</template>
 	<template>
