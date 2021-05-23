@@ -3,11 +3,11 @@
 <nta>
 	<declaration>// Place global declarations here
 const int N = 5;
-const int minTime = 20;
-const int maxTime = 60;
+const int minTime = 30;
+const int maxTime = 40;
 
-typedef int [minTime, maxTime+40] timeOfMissions;
-typedef int [0, N-1] interval;
+typedef int [minTime, maxTime] timeOfMissions;
+typedef int [1, N] interval;
 
 int idRobot;
 int distance;
@@ -22,13 +22,15 @@ chan finished_mission;</declaration>
 		<name>SectorManager</name>
 		<declaration>//clock executionMissionTime;
 void startMission(interval distance1, int missionTime1){
-    distance = (distance1+1) * 5;
-    missionComplete = false;
-    missionTime = missionTime1;
+        distance = (distance1) * 10;
+        missionComplete = false;
+        missionTime = missionTime1;
 }</declaration>
 		<location id="id0" x="-544" y="-110">
+			<name x="-569" y="-144">Idle</name>
 		</location>
 		<location id="id1" x="-323" y="-110">
+			<name x="-333" y="-144">in_mission</name>
 		</location>
 		<init ref="id0"/>
 		<transition>
@@ -44,50 +46,11 @@ void startMission(interval distance1, int missionTime1){
 			<label kind="select" x="-501" y="-110">distance : interval,
 missionTime : timeOfMissions</label>
 			<label kind="synchronisation" x="-476" y="-127">new_mission!</label>
-			<label kind="assignment" x="-501" y="-51">startMission(distance, missionTime)</label>
-		</transition>
-	</template>
-	<template>
-		<name>Nurse</name>
-		<declaration>
-bool is_busy = false;</declaration>
-		<location id="id2" x="-340" y="-76">
-			<name x="-391" y="-102">idle</name>
-		</location>
-		<location id="id3" x="-119" y="-76">
-			<name x="-102" y="-110">to_help</name>
-		</location>
-		<location id="id4" x="-212" y="0">
-			<name x="-229" y="-42">busy</name>
-		</location>
-		<init ref="id2"/>
-		<transition>
-			<source ref="id3"/>
-			<target ref="id2"/>
-			<label kind="synchronisation" x="-289" y="-119">finished_mission?</label>
-			<label kind="assignment" x="-289" y="-102">is_busy = false</label>
-		</transition>
-		<transition>
-			<source ref="id4"/>
-			<target ref="id4"/>
-			<label kind="guard" x="-289" y="93">is_busy == true</label>
-			<nail x="-290" y="77"/>
-			<nail x="-162" y="94"/>
-		</transition>
-		<transition>
-			<source ref="id4"/>
-			<target ref="id3"/>
-			<label kind="guard" x="-170" y="-25">is_busy == false</label>
-			<label kind="synchronisation" x="-161" y="-8">new_mission?</label>
-		</transition>
-		<transition>
-			<source ref="id2"/>
-			<target ref="id4"/>
+			<label kind="assignment" x="-501" y="-76">startMission(distance, missionTime)</label>
 		</transition>
 	</template>
 	<template>
 		<name x="5" y="5">Robot</name>
-		<parameter>const interval id</parameter>
 		<declaration>// Place local declarations here.
 int[0, 100] battery = 100;
 bool has_resources = false;
@@ -99,132 +62,190 @@ clock t;
 
 void updateValues(bool success){
     totalMissions++;
-    if(success == true){
-        battery = (battery - distance ) &lt; 0 ? 0 : (battery - distance );
+    if(success == true){        
         successfulMissions++;
         missionComplete = true;
     }
     else{
         missionComplete = false;
         failedMissions++;
-        battery = (battery - distance ) &lt; 0 ? 0 : (battery - distance );
     }
+        battery = (battery - distance ) &lt; 0 ? 0 : (battery - distance );
 }
 
 bool isLowBattery(){
-   return ((battery &lt; 20) == true);
+   return ((battery &lt; 10) == true);
 }
 
 
 //bool low_battery= (battery &lt; 20);</declaration>
-		<location id="id5" x="-314" y="-51">
-			<name x="-365" y="-60">Idle</name>
+		<location id="id2" x="-323" y="-8">
+			<name x="-374" y="-17">Idle</name>
 		</location>
-		<location id="id6" x="93" y="-221">
-			<name x="25" y="-255">moving</name>
-			<label kind="invariant" x="0" y="-238">t &lt; maxTime</label>
+		<location id="id3" x="-35" y="-229">
+			<name x="-103" y="-263">moving</name>
+			<label kind="invariant" x="-128" y="-246">t &lt; maxTime</label>
 		</location>
-		<location id="id7" x="365" y="0">
-			<name x="348" y="-59">executing_mission</name>
-			<label kind="invariant" x="357" y="-34">t &gt;=30 &amp;&amp; t &lt; maxTime</label>
+		<location id="id4" x="161" y="-8">
+			<name x="144" y="-67">executing_mission</name>
+			<label kind="invariant" x="153" y="-42">t &gt;=30 &amp;&amp; t &lt; maxTime</label>
+			<committed/>
 		</location>
-		<location id="id8" x="93" y="-399">
-			<name x="93" y="-450">grab_resources</name>
-			<label kind="invariant" x="76" y="-433">t &gt;=20 &amp;&amp; t &lt; maxTime</label>
+		<location id="id5" x="-34" y="-399">
+			<name x="-34" y="-450">grab_resources</name>
+			<label kind="invariant" x="-51" y="-433">t &gt;=20 &amp;&amp; t &lt; maxTime</label>
+			<committed/>
 		</location>
-		<location id="id9" x="-518" y="-272">
-			<name x="-577" y="-323">recharge_battery</name>
-			<label kind="invariant" x="-569" y="-306">t &gt;= 6 &amp;&amp; t &lt; 10</label>
+		<location id="id6" x="-510" y="-272">
+			<name x="-527" y="-323">recharge_battery</name>
+			<label kind="invariant" x="-519" y="-306">t &gt;= 6 &amp;&amp; t &lt; 10</label>
 		</location>
-		<location id="id10" x="-314" y="-272" color="#0000ff">
+		<location id="id7" x="-314" y="-272" color="#0000ff">
 			<name x="-365" y="-323">check_battery</name>
 			<label kind="invariant" x="-331" y="-306">t &lt; 10</label>
 		</location>
-		<init ref="id5"/>
+		<init ref="id2"/>
 		<transition>
-			<source ref="id6"/>
-			<target ref="id5"/>
-			<label kind="guard" x="-178" y="-119">t &gt; missionTime &amp;&amp;
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-306" y="-178">t &gt; missionTime &amp;&amp;
 missionComplete == true</label>
-			<label kind="synchronisation" x="-161" y="-153">finished_mission!</label>
-			<label kind="assignment" x="-161" y="-136">updateValues(false)</label>
-			<nail x="0" y="-195"/>
-			<nail x="-221" y="-136"/>
+			<label kind="synchronisation" x="-289" y="-212">finished_mission!</label>
+			<label kind="assignment" x="-289" y="-195">updateValues(false)</label>
+			<nail x="-110" y="-170"/>
+			<nail x="-212" y="-93"/>
 		</transition>
 		<transition>
-			<source ref="id6"/>
-			<target ref="id5"/>
-			<label kind="guard" x="-255" y="-42">t &lt;= missionTime &amp;&amp;
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-221" y="-68">t &lt;= missionTime &amp;&amp;
 missionComplete == true</label>
-			<label kind="synchronisation" x="-246" y="-8">finished_mission!</label>
-			<label kind="assignment" x="-246" y="8">updateValues(true)</label>
-			<nail x="-26" y="-51"/>
-		</transition>
-		<transition>
-			<source ref="id10"/>
-			<target ref="id6"/>
-			<label kind="guard" x="-221" y="-263">!isLowBattery()</label>
-			<nail x="-51" y="-272"/>
-			<nail x="68" y="-272"/>
-		</transition>
-		<transition>
-			<source ref="id9"/>
-			<target ref="id10"/>
-			<label kind="assignment" x="-493" y="-204">battery = 100</label>
-			<nail x="-510" y="-204"/>
-			<nail x="-365" y="-204"/>
-		</transition>
-		<transition>
-			<source ref="id10"/>
-			<target ref="id9"/>
-			<label kind="guard" x="-476" y="-263">isLowBattery() &amp;&amp;
-t &gt;= 6</label>
-		</transition>
-		<transition>
-			<source ref="id5"/>
-			<target ref="id10"/>
-			<label kind="synchronisation" x="-408" y="-127">new_mission?</label>
-			<label kind="assignment" x="-357" y="-144">t = 0</label>
-		</transition>
-		<transition>
-			<source ref="id8"/>
-			<target ref="id6"/>
-			<label kind="assignment" x="221" y="-314">has_resources = true</label>
-			<nail x="204" y="-399"/>
-			<nail x="204" y="-238"/>
-		</transition>
-		<transition>
-			<source ref="id6"/>
-			<target ref="id8"/>
-			<label kind="guard" x="-187" y="-408">has_resources == false  &amp;&amp;
-missionComplete == false</label>
+			<label kind="synchronisation" x="-212" y="-34">finished_mission!</label>
+			<label kind="assignment" x="-220" y="-18">updateValues(true)</label>
+			<nail x="-51" y="0"/>
+			<nail x="-272" y="0"/>
 		</transition>
 		<transition>
 			<source ref="id7"/>
-			<target ref="id6"/>
-			<label kind="assignment" x="127" y="0">has_resources = false,
-missionComplete = true</label>
-			<nail x="195" y="0"/>
-			<nail x="93" y="0"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-246" y="-297">!isLowBattery()</label>
+			<nail x="-144" y="-272"/>
+			<nail x="-59" y="-272"/>
 		</transition>
 		<transition>
 			<source ref="id6"/>
 			<target ref="id7"/>
-			<label kind="guard" x="212" y="-170">has_resources == true</label>
+			<label kind="assignment" x="-476" y="-204">battery = 100</label>
+			<nail x="-510" y="-204"/>
+			<nail x="-365" y="-204"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-476" y="-272">isLowBattery() &amp;&amp;
+t &gt;= 6</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-408" y="-127">new_mission?</label>
+			<label kind="assignment" x="-357" y="-144">t = 0</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id3"/>
+			<label kind="assignment" x="17" y="-315">has_resources = true</label>
+			<nail x="8" y="-323"/>
+			<nail x="8" y="-238"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-212" y="-357">has_resources == false  &amp;&amp;
+missionComplete == false</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="assignment" x="-34" y="-8">has_resources = false,
+missionComplete = true</label>
+			<nail x="67" y="-8"/>
+			<nail x="-35" y="-8"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id4"/>
+			<label kind="guard" x="25" y="-178">has_resources == true</label>
 		</transition>
 	</template>
 	<system>// Place template instantiations here.
 
 //Instanciar N Robôs
-system Robot, SectorManager;
+Robot1 = Robot();
+//Robot2 = Robot(1);
+//Robot3 = Robot(2);
+//Robot4 = Robot(3);
+//Robot5 = Robot(4);
+SecMan = SectorManager();
+system Robot1,SecMan;//,Robot3,Robot4,Robot5,
+
 </system>
 	<queries>
+		<query>
+			<formula>A&lt;&gt; (Robot1.battery &lt;= 100 or Robot1.battery &gt;=0)</formula>
+			<comment>For every path, the battery will range between 100 to 0</comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt;(missionComplete == 1 imply (Robot1.t &gt;= 30))</formula>
+			<comment>If the mission is completed, then the robot has begun the mission at least 30 seconds ago</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; Robot1.battery == 0
+</formula>
+			<comment>Eventually the robot's battery will deplete</comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; (distance == 1 imply Robot1.battery &lt;= 90)</formula>
+			<comment>If the distance is 1, means that the battery will deplete 10 units</comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; (distance == 2 imply Robot1.battery &lt;= 80)</formula>
+			<comment>If the distance is 2, means that the battery will deplete 20 units</comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; (distance == 3 imply Robot1.battery &lt;= 70)</formula>
+			<comment>If the distance is 3, means that the battery will deplete 30 units</comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; (distance == 4 imply Robot1.battery &lt;= 60)</formula>
+			<comment>If the distance is 4, means that the battery will deplete 40 units</comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; (distance == 5 imply Robot1.battery &lt;= 50)</formula>
+			<comment>If the distance is 5, means that the battery will deplete 50 units</comment>
+		</query>
+		<query>
+			<formula>E[] Robot1.grab_resources imply Robot1.has_resources == 1</formula>
+			<comment>Eventually, for all possible paths, if the robot is at the location grab_resources, then the resources will be picked up</comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; (Robot1.moving imply (Robot1.t &gt;=0 or Robot1.t &lt; 40))</formula>
+			<comment>If the robot is in the moving state, then the time will range between 0 and 40</comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; (Robot1.battery &lt; 10 imply Robot1.recharge_battery)</formula>
+			<comment>For all paths, if the robot's battery is less than 10, it implies that Robot1 will have to recharge in the future</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; (Robot1.successfulMissions &lt;= 0)</formula>
+			<comment>It is possible that a robot may never accomplish any mission.</comment>
+		</query>
 		<query>
 			<formula></formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A[] not deadlock</formula>
+			<formula></formula>
 			<comment></comment>
 		</query>
 	</queries>
