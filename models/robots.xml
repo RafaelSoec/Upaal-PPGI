@@ -2,7 +2,7 @@
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
 	<declaration>// Place global declarations here
-const int N = 5;
+const int N = 2;
 const int minTime = 30;
 const int maxTime = 40;
 
@@ -54,21 +54,19 @@ missionTime : timeOfMissions</label>
 		<declaration>// Place local declarations here.
 int[0, 100] battery = 100;
 bool has_resources = false;
-int totalMissions;
-int failedMissions;
-int successfulMissions;
+bool mission_success;
 
 clock t;
 
 void updateValues(bool success){
-    totalMissions++;
+    //totalMissions++;
     if(success == true){        
-        successfulMissions++;
-        missionComplete = true;
+        //successfulMissions++;
+        mission_success = true;
     }
     else{
-        missionComplete = false;
-        failedMissions++;
+        mission_success = false;
+        //failedMissions++;
     }
         battery = (battery - distance ) &lt; 0 ? 0 : (battery - distance );
 }
@@ -79,8 +77,8 @@ bool isLowBattery(){
 
 
 //bool low_battery= (battery &lt; 20);</declaration>
-		<location id="id2" x="-323" y="-8">
-			<name x="-374" y="-17">Idle</name>
+		<location id="id2" x="-323" y="0">
+			<name x="-374" y="-9">Idle</name>
 		</location>
 		<location id="id3" x="-35" y="-229">
 			<name x="-103" y="-263">moving</name>
@@ -108,12 +106,12 @@ bool isLowBattery(){
 		<transition>
 			<source ref="id3"/>
 			<target ref="id2"/>
-			<label kind="guard" x="-306" y="-178">t &gt; missionTime &amp;&amp;
+			<label kind="guard" x="-298" y="-170">t &gt; missionTime &amp;&amp;
 missionComplete == true</label>
-			<label kind="synchronisation" x="-289" y="-212">finished_mission!</label>
-			<label kind="assignment" x="-289" y="-195">updateValues(false)</label>
-			<nail x="-110" y="-170"/>
-			<nail x="-212" y="-93"/>
+			<label kind="synchronisation" x="-281" y="-204">finished_mission!</label>
+			<label kind="assignment" x="-281" y="-187">updateValues(false)</label>
+			<nail x="-102" y="-170"/>
+			<nail x="-204" y="-76"/>
 		</transition>
 		<transition>
 			<source ref="id3"/>
@@ -196,7 +194,7 @@ system Robot1,SecMan;//,Robot3,Robot4,Robot5,
 			<comment>For every path, the battery will range between 100 to 0</comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt;(missionComplete == 1 imply (Robot1.t &gt;= 30))</formula>
+			<formula>A&lt;&gt;(missionComplete == 1 imply (Robot1.t &gt;= minTime))</formula>
 			<comment>If the mission is completed, then the robot has begun the mission at least 30 seconds ago</comment>
 		</query>
 		<query>
@@ -205,23 +203,23 @@ system Robot1,SecMan;//,Robot3,Robot4,Robot5,
 			<comment>Eventually the robot's battery will deplete</comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; (distance == 1 imply Robot1.battery &lt;= 90)</formula>
+			<formula>A[] (distance == 1 imply Robot1.battery &lt;= 90)</formula>
 			<comment>If the distance is 1, means that the battery will deplete 10 units</comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; (distance == 2 imply Robot1.battery &lt;= 80)</formula>
+			<formula>A[] (distance == 2 imply Robot1.battery &lt;= 80)</formula>
 			<comment>If the distance is 2, means that the battery will deplete 20 units</comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; (distance == 3 imply Robot1.battery &lt;= 70)</formula>
+			<formula>A[] (distance == 3 imply Robot1.battery &lt;= 70)</formula>
 			<comment>If the distance is 3, means that the battery will deplete 30 units</comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; (distance == 4 imply Robot1.battery &lt;= 60)</formula>
+			<formula>A[] (distance == 4 imply Robot1.battery &lt;= 60)</formula>
 			<comment>If the distance is 4, means that the battery will deplete 40 units</comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; (distance == 5 imply Robot1.battery &lt;= 50)</formula>
+			<formula>A[] (distance == 5 imply Robot1.battery &lt;= 50)</formula>
 			<comment>If the distance is 5, means that the battery will deplete 50 units</comment>
 		</query>
 		<query>
@@ -229,7 +227,7 @@ system Robot1,SecMan;//,Robot3,Robot4,Robot5,
 			<comment>Eventually, for all possible paths, if the robot is at the location grab_resources, then the resources will be picked up</comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; (Robot1.moving imply (Robot1.t &gt;=0 or Robot1.t &lt; 40))</formula>
+			<formula>A&lt;&gt; (Robot1.moving imply (Robot1.t &gt;= minTime or Robot1.t &lt; maxTime))</formula>
 			<comment>If the robot is in the moving state, then the time will range between 0 and 40</comment>
 		</query>
 		<query>
@@ -237,16 +235,39 @@ system Robot1,SecMan;//,Robot3,Robot4,Robot5,
 			<comment>For all paths, if the robot's battery is less than 10, it implies that Robot1 will have to recharge in the future</comment>
 		</query>
 		<query>
-			<formula>E&lt;&gt; (Robot1.successfulMissions &lt;= 0)</formula>
+			<formula>A&lt;&gt; (Robot1.t &gt; missionTime imply missionComplete == true and Robot1.mission_success == false)</formula>
 			<comment>It is possible that a robot may never accomplish any mission.</comment>
 		</query>
 		<query>
-			<formula></formula>
-			<comment></comment>
+			<formula>A[] not deadlock</formula>
+			<comment>Absence property pattern
+Globally, GMRS never deadlocks</comment>
 		</query>
 		<query>
-			<formula></formula>
-			<comment></comment>
+			<formula>A[] Robot1.battery &gt; 10 imply not Robot1.recharge_battery
+</formula>
+			<comment>Globally, if the robot's battery is not below 10, then it doesn't have to recharge.
+Absence property pattern</comment>
+		</query>
+		<query>
+			<formula>missionComplete == true --&gt; Robot1.Idle
+</formula>
+			<comment>After the mission is completed, the robot will procede to the Idle location
+Response Property Pattern
+</comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; missionComplete == 1 imply (Robot1.t &gt;= 30 and Robot1.t &lt;= 40)</formula>
+			<comment>If the mission is completed, that means the time is between 30 and 40
+Bounded Existence pattern</comment>
+		</query>
+		<query>
+			<formula>A[] (Robot1.moving and missionComplete == true imply Robot1.has_resources == 0)</formula>
+			<comment>Robot1.moving, if missionComplete == true then it must be that case that Robot had resources before missionComplete == 1.</comment>
+		</query>
+		<query>
+			<formula>Robot1.moving and (missionComplete == false and Robot1.has_resources == false) --&gt; Robot1.grab_resources</formula>
+			<comment>Robot1.moving, if missionComplete == false and robot.has_resources == 0 then it must be that case that Robot has to go grab resources before continuing</comment>
 		</query>
 	</queries>
 </nta>
